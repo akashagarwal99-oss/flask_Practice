@@ -1,135 +1,79 @@
-# Student Registration System
+# Jenkins CI/CD Pipeline for Flask Application
 
-A simple **Flask** web application to manage student records with **MongoDB** as the backend database. Users can **add, view, update, and delete** student details.
+## Overview
 
----
+This project sets up a Jenkins pipeline that automatically builds, tests, and deploys a Python Flask application to staging whenever changes are pushed to the main branch. Email notifications are sent on build success or failure.
 
-## Features
+Source application: https://github.com/mohanDevOps-arch/flask_Practice.git (forked)
 
-* List all students on the home page
-* Add a new student
-* Update existing student details
-* Delete a student with confirmation
-* Simple and responsive UI using Bootstrap
+## Architecture
 
----
+    Developer -> git push (main) -> GitHub Repo -> Webhook
+        -> Jenkins Pipeline (Build -> Test -> Deploy) -> Staging Environment
+        -> Email Notification (Success / Failure)
 
-## Tech Stack
+## Prerequisites
 
-* **Backend:** Python, Flask
-* **Database:** MongoDB (via Flask-PyMongo)
-* **Frontend:** HTML, Jinja2 templates, Bootstrap 5
-* **Environment Variables:** Managed via `.env` file
+  - Jenkins installed on a VM or cloud host, with Git, Pipeline, and Email Extension plugins
+  - Python 3 and pip available on the Jenkins server
+  - Forked copy of the flask_Practice repository
+  - SMTP credentials configured in Jenkins for email alerts
+  - A staging host or directory to deploy the app to
 
----
+## Pipeline Stages (Jenkinsfile)
 
-## Setup Instructions
+Build
+  Installs dependencies from requirements.txt using pip.
 
-### 1. Clone the repository
+Test
+  Runs unit tests with pytest. A failure here stops the pipeline before deployment.
 
-```bash
-git clone <your-repo-url>
-cd <repo-folder>
-```
+Deploy
+  Runs only if tests pass. Copies the app to staging and restarts it.
 
-### 2. Create and activate a virtual environment
+Notify
+  Sends an email on every build, indicating success or which stage failed.
 
-```bash
-python -m venv venv
-# Activate venv
-# Windows:
-venv\Scripts\activate
-# Linux / Mac:
-source venv/bin/activate
-```
+## Trigger
 
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-**`requirements.txt` example:**
-
-```
-Flask
-Flask-PyMongo
-python-dotenv
-bson
-```
-
-### 4. Configure environment variables
-
-Create a `.env` file in the project root:
-
-```
-MONGO_URI=<your-mongodb-connection-string>
-SECRET_KEY=<your-secret-key>
-```
-
-### 5. Run the application
-
-```bash
-python app.py
-```
-
-Open your browser at: [http://localhost:8000](http://localhost:8000)
-
----
-
-## Project Structure
-
-```
-project/
-│
-├── templates/
-│   ├── base.html
-│   ├── index.html
-│   ├── add_student.html
-│   ├── update_student.html
-│
-├── app.py
-├── requirements.txt
-└── .env
-```
-
----
+A GitHub webhook pointing to the Jenkins server triggers a new build on every push to main. Poll SCM can be used as a fallback if a public webhook endpoint is unavailable.
 
 ## Screenshots
 
-**Home Page**
-Lists all students with Edit/Delete buttons.
-- <img width="1902" height="607" alt="image" src="https://github.com/user-attachments/assets/a58a6a6d-4978-4769-8074-232e4d31e69d" />
+Screenshot 1: Jenkins Dashboard
+  Pipeline job listed on the Jenkins dashboard.
+![Jenkins Dashboard](screenshots/01-jenkins-dashboard.png)
 
+Screenshot 2: Pipeline Stage View
+  Build, Test, and Deploy stages shown as successful.
+![Pipeline Stage View](screenshots/02-pipeline-stage-view.png)
 
-**Add Student**
-Form to add a new student.
-- <img width="1897" height="801" alt="image" src="https://github.com/user-attachments/assets/d65d25c3-ebb5-410a-adb1-e130ad7c5878" />
+Screenshot 3: Build Stage Console Output
+  Console log showing pip install of dependencies.
+![Build Console Output](screenshots/03-build-console-output.png)
 
+Screenshot 4: Test Stage Console Output
+  Console log showing pytest results.
+![Test Console Output](screenshots/04-test-console-output.png)
 
-**Update Student**
-Form pre-filled with student details.
-- <img width="1905" height="897" alt="image" src="https://github.com/user-attachments/assets/04febf01-879f-431f-ab07-abcfb993acf1" />
+Screenshot 5: Deploy Stage Console Output
+  Console log showing successful deployment to staging.
+![Deploy Console Output](screenshots/05-deploy-console-output.png)
 
+Screenshot 6: Email Notification
+  Email received after a build, showing success or failure status.
+![Email Notification](screenshots/06-email-notification.png)
 
+Screenshot 7: GitHub Webhook Configuration
+  Webhook settings in the GitHub repository pointing to Jenkins.
+![GitHub Webhook Configuration](screenshots/07-github-webhook-config.png)
 
----
+Screenshot 8: Staging Application Running
+  Flask app live in the staging environment after deployment.
+![Staging App Running](screenshots/08-staging-app-running.png)
 
-## Notes
+## Submission
 
-* Make sure MongoDB is running and accessible via the URI in `.env`
-* Delete action includes a confirmation page to prevent accidental deletion
-* Uses `ObjectId` from `bson` to work with MongoDB document IDs
-* If you use MongoDB Atlas on macOS, install dependencies again (`pip install -r requirements.txt`). This project now uses `certifi` CA bundle explicitly to avoid common TLS certificate verification failures with `pymongo`.
-
----
-
-## License
-
-MIT License
-
----
-
-
-
-Webhook Test
+  - Forked repository: https://github.com/akashagarwal99-oss/flask_Practice
+  - Jenkinsfile: repository root
+  - Screenshots: screenshots/ subdirectory
