@@ -31,6 +31,33 @@ EOF
             }
         }
 
+        stage('Code Formatting') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                black --check .
+                '''
+            }
+        }
+
+        stage('Lint') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                pylint app.py
+                '''
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                sh '''
+                . venv/bin/activate
+                bandit -r .
+                '''
+            }
+        }
+
         stage('Test') {
             steps {
                 sh '''
