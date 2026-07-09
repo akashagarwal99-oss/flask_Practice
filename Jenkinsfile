@@ -31,12 +31,6 @@ pipeline {
             }
         }
 
-        stage('Force Failure') {
-    steps {
-        sh 'exit 1'
-    }
-}
-
         stage('Build Docker Image') {
             steps {
                 sh '''
