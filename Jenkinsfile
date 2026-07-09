@@ -57,12 +57,49 @@ pipeline {
     }
 
     post {
-        success {
-            echo "Application deployed successfully!"
-        }
+    success {
+        mail(
+            to: 'akash.agarwal99@gmail.com',
+            subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: """
+Hello,
 
-        failure {
-            echo "Pipeline failed!"
-        }
+The Jenkins pipeline completed successfully.
+
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+Status: SUCCESS
+
+Build URL:
+${env.BUILD_URL}
+
+Regards,
+Jenkins
+"""
+        )
+    }
+
+    failure {
+        mail(
+            to: 'akash.agarwal99@gmail.com',
+            subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+            body: """
+Hello,
+
+The Jenkins pipeline has failed.
+
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+Status: FAILED
+
+Please check the console output:
+
+${env.BUILD_URL}
+
+Regards,
+Jenkins
+"""
+        )
     }
 }
+
