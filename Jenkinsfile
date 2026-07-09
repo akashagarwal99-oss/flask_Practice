@@ -1,11 +1,15 @@
 pipeline {
     agent any
 
+    environment {
+        MONGO_URI = credentials('mongo-uri')
+        SECRET_KEY = credentials('secret-key')
+    }
+
     stages {
 
         stage('Build') {
             steps {
-
                 sh '''
                 python3 -m venv venv
                 . venv/bin/activate
@@ -13,30 +17,26 @@ pipeline {
                 pip install --upgrade pip
                 pip install -r requirements.txt
                 '''
-
             }
         }
 
         stage('Create Environment') {
             steps {
-
                 sh '''
-cat > .env <<EOF
-MONGO_URI=mongodb+srv://admin:evzQj7s31johbKKx@akashcluster.yaoewss.mongodb.net/studentDB?retryWrites=true&w=majority&appName=AkashCluster
-SECRET_KEY=jenkins-secret-key
+                cat > .env <<EOF
+MONGO_URI=$MONGO_URI
+SECRET_KEY=$SECRET_KEY
 EOF
-'''
+                '''
             }
         }
 
         stage('Test') {
             steps {
-
                 sh '''
                 . venv/bin/activate
                 pytest -v
                 '''
-
             }
         }
     }
