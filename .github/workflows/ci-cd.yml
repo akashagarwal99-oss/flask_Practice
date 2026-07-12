@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - staging
+    tags:
+      - 'v*'
 
 jobs:
+
   build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +29,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Tests
+      - name: Run Unit Tests
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
@@ -47,8 +51,11 @@ jobs:
           name: flask-image
           path: flask-image.tar
 
-  deploy:
+  deploy-staging:
+    name: Deploy to Staging
     needs: build-and-test
+
+    if: github.ref == 'refs/heads/staging'
 
     runs-on: ubuntu-latest
 
@@ -71,3 +78,77 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push akash0505/flask-practice:latest
+
+      - name: Deploy to EC2 Staging
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          script: |
+            docker pull akash0505/flask-practice:latest
+
+            docker stop flask-app || true
+
+            docker rm flask-app || true
+
+            docker image prune -f
+
+            docker run -d \
+              --name flask-app \
+              -p 5000:5000 \
+              -e MONGO_URI="${{ secrets.MONGO_URI }}" \
+              -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+              akash0505/flask-practice:latest
+
+  deploy-production:
+    name: Deploy to Production
+    needs: build-and-test
+
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: flask-image
+
+      - name: Load Docker Image
+        run: |
+          docker load -i flask-image.tar
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Docker Image
+        run: |
+          docker push akash0505/flask-practice:latest
+
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          script: |
+            docker pull akash0505/flask-practice:latest
+
+            docker stop flask-app || true
+
+            docker rm flask-app || true
+
+            docker image prune -f
+
+            docker run -d \
+              --name flask-app \
+              -p 5000:5000 \
+              -e MONGO_URI="${{ secrets.MONGO_URI }}" \
+              -e SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+              akash0505/flask-practice:latest
