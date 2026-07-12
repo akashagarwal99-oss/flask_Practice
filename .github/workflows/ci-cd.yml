@@ -3,11 +3,12 @@ name: Flask CI/CD Pipeline
 on:
   push:
     branches:
-      - main
       - staging
 
 jobs:
+
   build-and-test:
+
     runs-on: ubuntu-latest
 
     steps:
@@ -34,3 +35,34 @@ jobs:
         run: |
           source venv/bin/activate
           pytest -v
+
+      - name: Build Docker Image
+        run: |
+          docker build -t akash0505/flask-practice:latest .
+
+      - name: Save Docker Image
+        run: |
+          docker save akash0505/flask-practice:latest -o flask-image.tar
+
+      - name: Upload Docker Image Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flask-image
+          path: flask-image.tar
+
+  deploy:
+
+    needs: build-and-test
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: flask-image
+
+      - name: Load Docker Image
+        run: |
+          docker load -i flask-image.tar
