@@ -6,13 +6,10 @@ on:
       - staging
 
 jobs:
-
   build-and-test:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -50,14 +47,12 @@ jobs:
           name: flask-image
           path: flask-image.tar
 
-   deploy:
-
+  deploy:
     needs: build-and-test
 
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Download Docker Image Artifact
         uses: actions/download-artifact@v4
         with:
